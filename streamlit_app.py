@@ -24,29 +24,35 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Authentication Configuration - Updated for compatibility
-import streamlit_authenticator as stauth
+# Simple Authentication (no external dependencies)
+def check_password():
+    def password_entered():
+        if st.session_state["password"] == "voter2025":
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store password
+        else:
+            st.session_state["password_correct"] = False
 
-# Pre-hashed password (avoids version compatibility issues)
-names = ["Voter Trends User"]  
-usernames = ["Votertrends"]
-passwords = ["$2b$12$Tr7eS8jPvCgqQ3xJWnb8m.ZhPXm8KjYbJ5oYjE6FZs3c8u2Xkjr4e"]  # This is the hashed version of 'ygG">pIA"95)wZ3'
+    if "password_correct" not in st.session_state:
+        # First run, show input for password
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
+        st.error("😞 Password incorrect")
+        return False
+    else:
+        # Password correct
+        return True
 
-credentials = {
-    "usernames": {
-        usernames[0]: {
-            "name": names[0],
-            "password": passwords[0]
-        }
-    }
-}
-
-authenticator = stauth.Authenticate(
-    credentials, 
-    "voter_ai_app", 
-    "new_auth_token", 
-    cookie_expiry_days=1
-)
+# Set up simple session state
+if 'authentication_status' not in st.session_state:
+    st.session_state['authentication_status'] = None
+if 'name' not in st.session_state:
+    st.session_state['name'] = None
+if 'username' not in st.session_state:
+    st.session_state['username'] = None
 
 # Session State Initialization
 if 'authentication_status' not in st.session_state:
