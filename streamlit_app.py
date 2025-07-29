@@ -2492,7 +2492,12 @@ else:
 
 # Main Application
 if st.session_state['authentication_status']:
-    authenticator.logout("Logout", "sidebar")
+    if st.sidebar.button("🚪 Logout"):
+    st.session_state.authenticated = False
+    st.session_state['authentication_status'] = False
+    st.session_state['name'] = None
+    st.session_state['username'] = None
+    st.rerun()
     
     st.title("🗳️ Voter Turnout Analyzer")
     st.markdown(f"**Welcome, {st.session_state['name']}!** Upload and analyze voter turnout data with advanced visualizations.")
