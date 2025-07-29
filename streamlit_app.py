@@ -2498,34 +2498,36 @@ if st.sidebar.button("🚪 Logout"):
     st.session_state['username'] = None
     st.rerun()
     
-    st.title("🗳️ Voter Turnout Analyzer")
-    st.markdown(f"**Welcome, {st.session_state['name']}!** Upload and analyze voter turnout data with advanced visualizations.")
+st.title("🗳️ Voter Turnout Analyzer")
+st.markdown(f"**Welcome, {st.session_state['name']}!** Upload and analyze voter turnout data with advanced visualizations.")
+
+with st.sidebar:
+    st.header("📁 Dataset Management")
     
-    with st.sidebar:
-        st.header("📁 Dataset Management")
-        
-        if st.session_state['datasets']:
-            st.subheader("Loaded Datasets:")
-            for name in st.session_state['datasets'].keys():
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.write(f"• {name}")
-                with col2:
-                    if st.button("🗑️", key=f"delete_{name}", help=f"Delete {name}"):
-                        del st.session_state['datasets'][name]
-                        st.rerun()
-        
-        if st.button("Clear All Datasets"):
-            st.session_state['datasets'] = {}
-            st.rerun()
+    if st.session_state['datasets']:
+        st.subheader("Loaded Datasets:")
+        for name in st.session_state['datasets'].keys():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(f"• {name}")
+            with col2:
+                if st.button("🗑️", key=f"delete_{name}", help=f"Delete {name}"):
+                    del st.session_state['datasets'][name]
+                    st.rerun()
     
-    st.subheader("📤 Upload Voter CSV Files")
-    uploaded_files = st.file_uploader(
-        "Choose CSV files", 
-        type="csv", 
-        accept_multiple_files=True,
-        help="Upload one or more CSV files with election data - columns will be automatically detected"
-    )
+    if st.button("Clear All Datasets"):
+        st.session_state['datasets'] = {}
+        st.rerun()
+
+st.subheader("📤 Upload Voter CSV Files")
+uploaded_files = st.file_uploader(
+    "Choose CSV files", 
+    type="csv", 
+    accept_multiple_files=True,
+    help="Upload one or more CSV files with election data - columns will be automatically detected"
+)
+
+# ... rest of your main application code continues here at the same indentation level ...
     
     if uploaded_files:
         for uploaded_file in uploaded_files:
