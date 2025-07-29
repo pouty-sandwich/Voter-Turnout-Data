@@ -942,8 +942,7 @@ def analyze_dataset(df, dataset_name):
 
 def create_single_dataset_charts(stats):
              # AND REPLACE YOUR AI SUGGESTION SECTION WITH THIS:
-
-if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
+    if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
     prompt = (
         f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
         f"Total Precincts: {stats['total_rows']:,}\n"
