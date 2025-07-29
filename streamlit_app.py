@@ -19,12 +19,38 @@ from openai import OpenAI
 from dotenv import load_dotenv
 load_dotenv()
 
-# 2. REPLACE YOUR CLIENT INITIALIZATION SECTION
-# Initialize both API clients
-anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# REPLACE YOUR CLIENT INITIALIZATION SECTION WITH THIS:
 
-# 3. UPDATE THE AI SUGGESTION SECTION (replace the existing try-except block)
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
+# Initialize API clients safely - handle missing API keys
+anthropic_client = None
+openai_client = None
+
+# Try to initialize Anthropic client
+try:
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_api_key:
+        anthropic_client = Anthropic(api_key=anthropic_api_key)
+    else:
+        print("Warning: ANTHROPIC_API_KEY not found in environment variables")
+except Exception as e:
+    print(f"Failed to initialize Anthropic client: {e}")
+
+# Try to initialize OpenAI client
+try:
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if openai_api_key:
+        openai_client = OpenAI(api_key=openai_api_key)
+    else:
+        print("Warning: OPENAI_API_KEY not found in environment variables")
+except Exception as e:
+    print(f"Failed to initialize OpenAI client: {e}")
+
+# AND REPLACE YOUR AI SUGGESTION SECTION WITH THIS:
+
 if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
     prompt = (
         f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
@@ -43,24 +69,30 @@ if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_na
         f"\nFocus on real examples with measurable results and specific implementation strategies."
     )
     
-    # Try Anthropic first, fallback to OpenAI
-    try:
-        response = anthropic_client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=1000,
-            messages=[
-                {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
-            ]
-        )
-        
-        if response:
-            suggestions = response.content[0].text
-            st.markdown("### 🤖 AI-Generated Improvement Suggestions (Claude)")
-            st.write(suggestions)
-        
-    except Exception as anthropic_error:
-        st.warning(f"Anthropic API failed: {anthropic_error}. Trying OpenAI...")
-        
+    success = False
+    
+    # Try Anthropic first if available
+    if anthropic_client:
+        try:
+            response = anthropic_client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=1000,
+                messages=[
+                    {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
+                ]
+            )
+            
+            if response:
+                suggestions = response.content[0].text
+                st.markdown("### 🤖 AI-Generated Improvement Suggestions (Claude)")
+                st.write(suggestions)
+                success = True
+                
+        except Exception as anthropic_error:
+            st.warning(f"Anthropic API failed: {anthropic_error}")
+    
+    # Try OpenAI if Anthropic failed or wasn't available
+    if not success and openai_client:
         try:
             response = openai_client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -75,9 +107,18 @@ if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_na
                 suggestions = response.choices[0].message.content
                 st.markdown("### 🤖 AI-Generated Improvement Suggestions (GPT)")
                 st.write(suggestions)
+                success = True
                 
         except Exception as openai_error:
-            st.error(f"Both AI services failed. Anthropic: {anthropic_error}, OpenAI: {openai_error}")
+            st.error(f"OpenAI API failed: {openai_error}")
+    
+    # If no AI service is available
+    if not success:
+        if not anthropic_client and not openai_client:
+            st.error("🚫 No AI services available. Please check your API keys in the environment variables.")
+            st.info("Required environment variables: ANTHROPIC_API_KEY and/or OPENAI_API_KEY")
+        else:
+            st.error("🚫 All available AI services failed. Please check your API keys and try again.")
 
 # 4. ADD TO YOUR .env FILE
 # ANTHROPIC_API_KEY=your_anthropic_api_key_here
