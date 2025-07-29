@@ -42,7 +42,7 @@ def check_login():
             
             if login_button:
                 # Check credentials
-                if username == "Votertrends" and password == "voter2025":
+                if username == "Votertrends" and password == "ygG">pIA"95)wZ3":
                     st.session_state.authenticated = True
                     st.session_state['authentication_status'] = True
                     st.session_state['name'] = "Voter Trends User"
