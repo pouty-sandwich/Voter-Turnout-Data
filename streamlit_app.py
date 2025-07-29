@@ -944,12 +944,12 @@ def create_single_dataset_charts(stats):
              # AND REPLACE YOUR AI SUGGESTION SECTION WITH THIS:
     if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
         prompt = (
-        f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
-        f"Total Precincts: {stats['total_rows']:,}\n"
-        f"Total Registered: {stats['total_registered']:,}\n"
-        f"Total Voted: {stats['total_voted']:,}\n"
-        f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
-        + (f"\nParty Breakdown:\n" + "\n".join([
+            f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
+            f"Total Precincts: {stats['total_rows']:,}\n"
+            f"Total Registered: {stats['total_registered']:,}\n"
+            f"Total Voted: {stats['total_voted']:,}\n"
+            f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
+    + (f"\nParty Breakdown:\n" + "\n".join([
             f"- {party}: {data['voted']:,} voted out of {data['registered']:,} registered ({data['voted']/data['registered']*100:.1f}% turnout)"
             for party, data in stats['party_breakdown'].items() if data['registered'] > 0
         ]) if stats['party_breakdown'] else "") +
