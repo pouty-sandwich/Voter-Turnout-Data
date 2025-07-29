@@ -2491,8 +2491,7 @@ else:
     st.stop()  # Stop here, don't show the main app
 
 # Main Application
-if st.session_state['authentication_status']:
-    if st.sidebar.button("🚪 Logout"):
+if st.sidebar.button("🚪 Logout"):
     st.session_state.authenticated = False
     st.session_state['authentication_status'] = False
     st.session_state['name'] = None
