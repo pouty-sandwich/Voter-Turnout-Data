@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 import pandas as pd
-import openai
+import anthropic
 import os
 from dotenv import load_dotenv
 import plotly.express as px
