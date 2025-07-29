@@ -24,37 +24,43 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Simple Authentication (no external dependencies)
-def check_password():
-    def password_entered():
-        if st.session_state["password"] == "voter2025":
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store password
-        else:
-            st.session_state["password_correct"] = False
-
-    if "password_correct" not in st.session_state:
-        # First run, show input for password
-        st.text_input("Password", type="password", on_change=password_entered, key="password")
-        return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error
-        st.text_input("Password", type="password", on_change=password_entered, key="password")
-        st.error("😞 Password incorrect")
-        return False
+# Simple Authentication System
+def check_login():
+    """Handle login screen and authentication"""
+    if 'authenticated' not in st.session_state:
+        st.session_state.authenticated = False
+    
+    if not st.session_state.authenticated:
+        # Show login form
+        st.title("🔐 Voter Turnout Analyzer - Login")
+        st.markdown("Please enter your credentials to access the voter analysis dashboard.")
+        
+        with st.form("login_form"):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            login_button = st.form_submit_button("Login")
+            
+            if login_button:
+                # Check credentials
+                if username == "Votertrends" and password == "voter2025":
+                    st.session_state.authenticated = True
+                    st.session_state['authentication_status'] = True
+                    st.session_state['name'] = "Voter Trends User"
+                    st.session_state['username'] = username
+                    st.success("✅ Login successful! Redirecting...")
+                    st.rerun()
+                else:
+                    st.error("❌ Invalid username or password")
+                    st.session_state['authentication_status'] = False
+        
+        return False  # Not authenticated
+    
     else:
-        # Password correct
-        return True
+        # User is authenticated
+        st.session_state['authentication_status'] = True
+        return True  # Authenticated
 
-# Set up simple session state
-if 'authentication_status' not in st.session_state:
-    st.session_state['authentication_status'] = None
-if 'name' not in st.session_state:
-    st.session_state['name'] = None
-if 'username' not in st.session_state:
-    st.session_state['username'] = None
-
-# Session State Initialization
+# Session State Initialization (keep this part)
 if 'authentication_status' not in st.session_state:
     st.session_state['authentication_status'] = None
 if 'name' not in st.session_state:
@@ -2476,13 +2482,13 @@ def create_comparison_charts(datasets_stats):
     st.dataframe(comparison_df, use_container_width=True)
 
 # Login Interface
-# Simple login check
-if check_password():
-    st.session_state['authentication_status'] = True
-    st.session_state['name'] = "Voter Trends User"
-    st.session_state['username'] = "Votertrends"
+# Main Application Logic
+if check_login():
+    # User is authenticated - show the main app
+    pass  # The main app code below will run
 else:
-    st.session_state['authentication_status'] = False
+    # User is not authenticated - login form is already shown
+    st.stop()  # Stop here, don't show the main app
 
 # Main Application
 if st.session_state['authentication_status']:
