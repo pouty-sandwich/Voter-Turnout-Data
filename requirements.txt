@@ -1,29 +1,25 @@
-# Core Streamlit and web framework
-streamlit>=1.28.0
-streamlit-authenticator>=0.2.3
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
+import os
+from datetime import datetime
+import io
+import json
+from anthropic import Anthropic
+from openai import OpenAI
 
-# Data processing and analysis
-pandas>=1.5.0
-numpy>=1.24.0
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
 
-# Visualization
-plotly>=5.15.0
+# Initialize API clients
+anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# API and external services
-anthropic>=0.7.0
-requests>=2.31.0
-
-# Environment and configuration
-python-dotenv>=1.0.0
-
-# Additional utilities (if needed)
-# python-dateutil>=2.8.2
-# pytz>=2023.3
-
-# Optional: For enhanced CSV processing
-# openpyxl>=3.1.0  # For Excel file support
-# xlrd>=2.0.1      # For older Excel formats
-
-# Development and testing (optional)
-# pytest>=7.4.0
-# pytest-cov>=4.1.0
+# Your existing Streamlit config and authentication code continues here...
