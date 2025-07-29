@@ -40,7 +40,7 @@ A comprehensive Streamlit application for analyzing voter registration and turno
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/voter-turnout-analyzer.git
+git clone https://github.com/pouty-sandwich/voter-turnout-analyzer.git
 cd voter-turnout-analyzer
 ```
 
