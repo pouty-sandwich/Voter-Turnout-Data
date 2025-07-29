@@ -2470,7 +2470,17 @@ def create_comparison_charts(datasets_stats):
     st.dataframe(comparison_df, use_container_width=True)
 
 # Login Interface
-name, authentication_status, username = authenticator.login("Login", location="main")
+# Updated login method for newer streamlit-authenticator versions
+try:
+    authenticator.login()
+    name = st.session_state.get("name")
+    authentication_status = st.session_state.get("authentication_status")
+    username = st.session_state.get("username")
+except Exception as e:
+    # Fallback for different versions
+    name = None
+    authentication_status = None
+    username = None
 
 st.session_state['name'] = name
 st.session_state['authentication_status'] = authentication_status
