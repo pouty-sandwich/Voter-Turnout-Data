@@ -1,0 +1,4 @@
+# .env for Claude AI
+
+# Claude API Key
+ANTHROPIC_API_KEY=claude-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
