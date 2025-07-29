@@ -2491,6 +2491,7 @@ else:
     st.stop()  # Stop here, don't show the main app
 
 # Main Application - ALL CODE BELOW SHOULD BE AT THE SAME LEVEL (NO EXTRA INDENTATION)
+# Main Application - ALL CODE BELOW SHOULD BE AT THE SAME LEVEL (NO EXTRA INDENTATION)
 if st.sidebar.button("🚪 Logout"):
     st.session_state.authenticated = False
     st.session_state['authentication_status'] = False
@@ -2611,28 +2612,20 @@ if st.session_state['datasets']:
                 )
                 
                 try:
-                    models_to_try = ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4", "gpt-4o"]
-                    
                     response = client.messages.create(
-    model="claude-3-haiku-20240307",  # or claude-3-sonnet-20240229 for better quality
-    max_tokens=1000,
-    messages=[
-        {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
-    ]
-)
-                            break
-                        except Exception as model_error:
-                            if "model_not_found" in str(model_error):
-                                continue
-                            else:
-                                raise model_error
+                        model="claude-3-haiku-20240307",  # or claude-3-sonnet-20240229 for better quality
+                        max_tokens=1000,
+                        messages=[
+                            {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
+                        ]
+                    )
                     
                     if response:
-                        suggestions = response.choices[0].message.content
+                        suggestions = response.content[0].text
                         st.markdown("### 🤖 AI-Generated Improvement Suggestions")
                         st.write(suggestions)
                     else:
-                        st.error("Unable to access AI models. Please check your API configuration.")
+                        st.error("Unable to get AI response. Please check your API configuration.")
                 
                 except Exception as e:
                     st.error(f"AI request failed: {e}")
