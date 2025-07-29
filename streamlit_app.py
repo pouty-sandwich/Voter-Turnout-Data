@@ -1,28 +1,87 @@
+# 1. UPDATE YOUR IMPORTS SECTION (replace the existing imports)
 import streamlit as st
-import streamlit_authenticator as stauth
 import pandas as pd
-import anthropic
-import os
-from dotenv import load_dotenv
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
-import re
-import json
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
+import os
 from datetime import datetime
+import io
+import json
+from anthropic import Anthropic
+from openai import OpenAI
 
-# Load environment variables from .env file
+# Load environment variables
+from dotenv import load_dotenv
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Configure Streamlit
-st.set_page_config(
-    page_title="Voter Turnout Analyzer", 
-    page_icon="🗳️", 
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# 2. REPLACE YOUR CLIENT INITIALIZATION SECTION
+# Initialize both API clients
+anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# 3. UPDATE THE AI SUGGESTION SECTION (replace the existing try-except block)
+if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
+    prompt = (
+        f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
+        f"Total Precincts: {stats['total_rows']:,}\n"
+        f"Total Registered: {stats['total_registered']:,}\n"
+        f"Total Voted: {stats['total_voted']:,}\n"
+        f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
+        + (f"\nParty Breakdown:\n" + "\n".join([
+            f"- {party}: {data['voted']:,} voted out of {data['registered']:,} registered ({data['voted']/data['registered']*100:.1f}% turnout)"
+            for party, data in stats['party_breakdown'].items() if data['registered'] > 0
+        ]) if stats['party_breakdown'] else "") +
+        f"\n\nPlease provide:\n"
+        f"1. What are 3-4 other large cities that historically struggled with voter turnout similar to this rate ({stats['turnout_rate']:.1f}%) but then significantly increased their turnout in subsequent elections?\n"
+        f"2. What specific, concrete steps did those cities take to increase voter participation?\n"
+        f"3. Which of those strategies would be most applicable to this jurisdiction based on the data patterns shown?\n"
+        f"\nFocus on real examples with measurable results and specific implementation strategies."
+    )
+    
+    # Try Anthropic first, fallback to OpenAI
+    try:
+        response = anthropic_client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
+            ]
+        )
+        
+        if response:
+            suggestions = response.content[0].text
+            st.markdown("### 🤖 AI-Generated Improvement Suggestions (Claude)")
+            st.write(suggestions)
+        
+    except Exception as anthropic_error:
+        st.warning(f"Anthropic API failed: {anthropic_error}. Trying OpenAI...")
+        
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                max_tokens=1000,
+                messages=[
+                    {"role": "system", "content": "You are a civic engagement expert specializing in voter turnout analysis."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            if response:
+                suggestions = response.choices[0].message.content
+                st.markdown("### 🤖 AI-Generated Improvement Suggestions (GPT)")
+                st.write(suggestions)
+                
+        except Exception as openai_error:
+            st.error(f"Both AI services failed. Anthropic: {anthropic_error}, OpenAI: {openai_error}")
+
+# 4. ADD TO YOUR .env FILE
+# ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# OPENAI_API_KEY=your_openai_api_key_here
 
 # Simple Authentication System
 def check_login():
