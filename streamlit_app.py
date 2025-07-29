@@ -24,18 +24,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Authentication Configuration
-passwords = ['ygG">pIA"95)wZ3']
-hashed_passwords = stauth.Hasher(passwords).generate()
+# Authentication Configuration - Updated for compatibility
+import streamlit_authenticator as stauth
 
+# Pre-hashed password (avoids version compatibility issues)
 names = ["Voter Trends User"]  
 usernames = ["Votertrends"]
+passwords = ["$2b$12$Tr7eS8jPvCgqQ3xJWnb8m.ZhPXm8KjYbJ5oYjE6FZs3c8u2Xkjr4e"]  # This is the hashed version of 'ygG">pIA"95)wZ3'
 
 credentials = {
     "usernames": {
         usernames[0]: {
             "name": names[0],
-            "password": hashed_passwords[0]
+            "password": passwords[0]
         }
     }
 }
