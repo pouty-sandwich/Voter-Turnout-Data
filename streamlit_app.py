@@ -2490,14 +2490,14 @@ else:
     # User is not authenticated - login form is already shown
     st.stop()  # Stop here, don't show the main app
 
-# Main Application
+# Main Application - ALL CODE BELOW SHOULD BE AT THE SAME LEVEL (NO EXTRA INDENTATION)
 if st.sidebar.button("🚪 Logout"):
     st.session_state.authenticated = False
     st.session_state['authentication_status'] = False
     st.session_state['name'] = None
     st.session_state['username'] = None
     st.rerun()
-    
+
 st.title("🗳️ Voter Turnout Analyzer")
 st.markdown(f"**Welcome, {st.session_state['name']}!** Upload and analyze voter turnout data with advanced visualizations.")
 
@@ -2527,134 +2527,133 @@ uploaded_files = st.file_uploader(
     help="Upload one or more CSV files with election data - columns will be automatically detected"
 )
 
-# ... rest of your main application code continues here at the same indentation level ...
-    
-    if uploaded_files:
-        for uploaded_file in uploaded_files:
-            dataset_name = uploaded_file.name.replace('.csv', '')
-            
-            if dataset_name not in st.session_state['datasets']:
-                with st.spinner(f"Loading {dataset_name}..."):
-                    df = load_csv_efficiently(uploaded_file)
-                    
-                    if df is not None:
-                        stats = analyze_dataset(df, dataset_name)
-                        if stats:
-                            st.session_state['datasets'][dataset_name] = {
-                                'data': df,
-                                'stats': stats
-                            }
-                            st.success(f"✅ Loaded {dataset_name} ({len(df):,} records)")
-                        else:
-                            st.error(f"❌ {dataset_name} could not be processed")
-    
-    if st.session_state['datasets']:
-        st.subheader("📊 Data Analysis & Visualizations")
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        dataset_name = uploaded_file.name.replace('.csv', '')
         
-        for dataset_name, dataset_info in st.session_state['datasets'].items():
-            with st.expander(f"📈 Analysis: {dataset_name}", expanded=len(st.session_state['datasets']) == 1):
-                stats = dataset_info['stats']
-                df = dataset_info['data']
+        if dataset_name not in st.session_state['datasets']:
+            with st.spinner(f"Loading {dataset_name}..."):
+                df = load_csv_efficiently(uploaded_file)
                 
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    st.metric("Total Precincts", f"{stats['total_rows']:,}")
-                with col2:
-                    st.metric("Total Registered", f"{stats['total_registered']:,}")
-                with col3:
-                    st.metric("Total Voted", f"{stats['total_voted']:,}")
-                with col4:
-                    st.metric("Turnout Rate", f"{stats['turnout_rate']:.2f}%")
-                
-                st.info(f"📊 **Data Source**: Registration from '{stats['reg_column_used']}', Voting from '{stats['vote_column_used']}'")
-                
-                if stats.get('rows_filtered', 0) > 0:
-                    st.info(f"🔧 **Data Cleaning**: Filtered out {stats['rows_filtered']} summary/outlier rows for accurate counting")
-                
-                if 'debug_info' in stats:
-                    with st.expander("🔍 Technical Details & Data Processing", expanded=False):
-                        st.write("**Data Processing Steps:**")
-                        for info in stats['debug_info']:
-                            st.write(f"- {info}")
-                
-                if stats['party_breakdown']:
-                    st.write("**Party Breakdown:**")
-                    party_cols = st.columns(len(stats['party_breakdown']))
-                    for i, (party, data) in enumerate(stats['party_breakdown'].items()):
-                        with party_cols[i]:
-                            turnout_rate = (data['voted'] / data['registered'] * 100) if data['registered'] > 0 else 0
-                            st.metric(
-                                f"{party} Turnout", 
-                                f"{turnout_rate:.1f}%",
-                                f"{data['voted']:,} of {data['registered']:,}"
-                            )
-                
-                st.write("**Data Preview:**")
-                st.dataframe(df.head(100), use_container_width=True)
-                
-                create_single_dataset_charts(stats)
-                
-                if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
-                    prompt = (
-                        f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
-                        f"Total Precincts: {stats['total_rows']:,}\n"
-                        f"Total Registered: {stats['total_registered']:,}\n"
-                        f"Total Voted: {stats['total_voted']:,}\n"
-                        f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
-                        + (f"\nParty Breakdown:\n" + "\n".join([
-                            f"- {party}: {data['voted']:,} voted out of {data['registered']:,} registered ({data['voted']/data['registered']*100:.1f}% turnout)"
-                            for party, data in stats['party_breakdown'].items() if data['registered'] > 0
-                        ]) if stats['party_breakdown'] else "") +
-                        f"\n\nPlease provide:\n"
-                        f"1. What are 3-4 other large cities that historically struggled with voter turnout similar to this rate ({stats['turnout_rate']:.1f}%) but then significantly increased their turnout in subsequent elections?\n"
-                        f"2. What specific, concrete steps did those cities take to increase voter participation?\n"
-                        f"3. Which of those strategies would be most applicable to this jurisdiction based on the data patterns shown?\n"
-                        f"\nFocus on real examples with measurable results and specific implementation strategies."
-                    )
-                    
-                    try:
-                        models_to_try = ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4", "gpt-4o"]
-                        
-                        response = None
-                        for model in models_to_try:
-                            try:
-                                response = openai.chat.completions.create(
-                                    model=model,
-                                    messages=[
-                                        {"role": "system", "content": "You are a civic engagement expert specializing in voter turnout analysis."},
-                                        {"role": "user", "content": prompt}
-                                    ],
-                                    max_tokens=1000
-                                )
-                                break
-                            except Exception as model_error:
-                                if "model_not_found" in str(model_error):
-                                    continue
-                                else:
-                                    raise model_error
-                        
-                        if response:
-                            suggestions = response.choices[0].message.content
-                            st.markdown("### 🤖 AI-Generated Improvement Suggestions")
-                            st.write(suggestions)
-                        else:
-                            st.error("Unable to access AI models. Please check your API configuration.")
-                    
-                    except Exception as e:
-                        st.error(f"AI request failed: {e}")
-        
-        if len(st.session_state['datasets']) > 1:
-            datasets_stats = [info['stats'] for info in st.session_state['datasets'].values()]
-            create_comparison_charts(datasets_stats)
-        
-        # Add export functionality
-        datasets_stats = [info['stats'] for info in st.session_state['datasets'].values()]
-        create_export_section(datasets_stats)
-    
-    else:
-        st.info("👆 Upload CSV files to begin analysis")
+                if df is not None:
+                    stats = analyze_dataset(df, dataset_name)
+                    if stats:
+                        st.session_state['datasets'][dataset_name] = {
+                            'data': df,
+                            'stats': stats
+                        }
+                        st.success(f"✅ Loaded {dataset_name} ({len(df):,} records)")
+                    else:
+                        st.error(f"❌ {dataset_name} could not be processed")
 
-elif st.session_state['authentication_status'] is False:
+if st.session_state['datasets']:
+    st.subheader("📊 Data Analysis & Visualizations")
+    
+    for dataset_name, dataset_info in st.session_state['datasets'].items():
+        with st.expander(f"📈 Analysis: {dataset_name}", expanded=len(st.session_state['datasets']) == 1):
+            stats = dataset_info['stats']
+            df = dataset_info['data']
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Total Precincts", f"{stats['total_rows']:,}")
+            with col2:
+                st.metric("Total Registered", f"{stats['total_registered']:,}")
+            with col3:
+                st.metric("Total Voted", f"{stats['total_voted']:,}")
+            with col4:
+                st.metric("Turnout Rate", f"{stats['turnout_rate']:.2f}%")
+            
+            st.info(f"📊 **Data Source**: Registration from '{stats['reg_column_used']}', Voting from '{stats['vote_column_used']}'")
+            
+            if stats.get('rows_filtered', 0) > 0:
+                st.info(f"🔧 **Data Cleaning**: Filtered out {stats['rows_filtered']} summary/outlier rows for accurate counting")
+            
+            if 'debug_info' in stats:
+                with st.expander("🔍 Technical Details & Data Processing", expanded=False):
+                    st.write("**Data Processing Steps:**")
+                    for info in stats['debug_info']:
+                        st.write(f"- {info}")
+            
+            if stats['party_breakdown']:
+                st.write("**Party Breakdown:**")
+                party_cols = st.columns(len(stats['party_breakdown']))
+                for i, (party, data) in enumerate(stats['party_breakdown'].items()):
+                    with party_cols[i]:
+                        turnout_rate = (data['voted'] / data['registered'] * 100) if data['registered'] > 0 else 0
+                        st.metric(
+                            f"{party} Turnout", 
+                            f"{turnout_rate:.1f}%",
+                            f"{data['voted']:,} of {data['registered']:,}"
+                        )
+            
+            st.write("**Data Preview:**")
+            st.dataframe(df.head(100), use_container_width=True)
+            
+            create_single_dataset_charts(stats)
+            
+            if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
+                prompt = (
+                    f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
+                    f"Total Precincts: {stats['total_rows']:,}\n"
+                    f"Total Registered: {stats['total_registered']:,}\n"
+                    f"Total Voted: {stats['total_voted']:,}\n"
+                    f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
+                    + (f"\nParty Breakdown:\n" + "\n".join([
+                        f"- {party}: {data['voted']:,} voted out of {data['registered']:,} registered ({data['voted']/data['registered']*100:.1f}% turnout)"
+                        for party, data in stats['party_breakdown'].items() if data['registered'] > 0
+                    ]) if stats['party_breakdown'] else "") +
+                    f"\n\nPlease provide:\n"
+                    f"1. What are 3-4 other large cities that historically struggled with voter turnout similar to this rate ({stats['turnout_rate']:.1f}%) but then significantly increased their turnout in subsequent elections?\n"
+                    f"2. What specific, concrete steps did those cities take to increase voter participation?\n"
+                    f"3. Which of those strategies would be most applicable to this jurisdiction based on the data patterns shown?\n"
+                    f"\nFocus on real examples with measurable results and specific implementation strategies."
+                )
+                
+                try:
+                    models_to_try = ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4", "gpt-4o"]
+                    
+                    response = None
+                    for model in models_to_try:
+                        try:
+                            response = openai.chat.completions.create(
+                                model=model,
+                                messages=[
+                                    {"role": "system", "content": "You are a civic engagement expert specializing in voter turnout analysis."},
+                                    {"role": "user", "content": prompt}
+                                ],
+                                max_tokens=1000
+                            )
+                            break
+                        except Exception as model_error:
+                            if "model_not_found" in str(model_error):
+                                continue
+                            else:
+                                raise model_error
+                    
+                    if response:
+                        suggestions = response.choices[0].message.content
+                        st.markdown("### 🤖 AI-Generated Improvement Suggestions")
+                        st.write(suggestions)
+                    else:
+                        st.error("Unable to access AI models. Please check your API configuration.")
+                
+                except Exception as e:
+                    st.error(f"AI request failed: {e}")
+    
+    if len(st.session_state['datasets']) > 1:
+        datasets_stats = [info['stats'] for info in st.session_state['datasets'].values()]
+        create_comparison_charts(datasets_stats)
+    
+    # Add export functionality
+    datasets_stats = [info['stats'] for info in st.session_state['datasets'].values()]
+    create_export_section(datasets_stats)
+
+else:
+    st.info("👆 Upload CSV files to begin analysis")
+
+# This should only run if authentication fails
+if st.session_state['authentication_status'] is False:
     st.error("❌ Username/password is incorrect")
 elif st.session_state['authentication_status'] is None:
     st.warning("🔐 Please enter your username and password")
