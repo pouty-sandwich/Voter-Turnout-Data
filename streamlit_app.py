@@ -2613,17 +2613,13 @@ if st.session_state['datasets']:
                 try:
                     models_to_try = ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4", "gpt-4o"]
                     
-                    response = None
-                    for model in models_to_try:
-                        try:
-                            response = openai.chat.completions.create(
-                                model=model,
-                                messages=[
-                                    {"role": "system", "content": "You are a civic engagement expert specializing in voter turnout analysis."},
-                                    {"role": "user", "content": prompt}
-                                ],
-                                max_tokens=1000
-                            )
+                    response = client.messages.create(
+    model="claude-3-haiku-20240307",  # or claude-3-sonnet-20240229 for better quality
+    max_tokens=1000,
+    messages=[
+        {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
+    ]
+)
                             break
                         except Exception as model_error:
                             if "model_not_found" in str(model_error):
