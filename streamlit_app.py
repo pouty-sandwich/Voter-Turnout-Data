@@ -41,8 +41,8 @@ def check_login():
             login_button = st.form_submit_button("Login")
             
             if login_button:
-                # Check credentials
-                if username == "Votertrends" and password == "ygG">pIA"95)wZ3":
+                # Check credentials with your original password
+                if username == "Votertrends" and password == 'ygG">pIA"95)wZ3':
                     st.session_state.authenticated = True
                     st.session_state['authentication_status'] = True
                     st.session_state['name'] = "Voter Trends User"
