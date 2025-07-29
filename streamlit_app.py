@@ -49,76 +49,6 @@ try:
 except Exception as e:
     print(f"Failed to initialize OpenAI client: {e}")
 
-# AND REPLACE YOUR AI SUGGESTION SECTION WITH THIS:
-
-if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
-    prompt = (
-        f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
-        f"Total Precincts: {stats['total_rows']:,}\n"
-        f"Total Registered: {stats['total_registered']:,}\n"
-        f"Total Voted: {stats['total_voted']:,}\n"
-        f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
-        + (f"\nParty Breakdown:\n" + "\n".join([
-            f"- {party}: {data['voted']:,} voted out of {data['registered']:,} registered ({data['voted']/data['registered']*100:.1f}% turnout)"
-            for party, data in stats['party_breakdown'].items() if data['registered'] > 0
-        ]) if stats['party_breakdown'] else "") +
-        f"\n\nPlease provide:\n"
-        f"1. What are 3-4 other large cities that historically struggled with voter turnout similar to this rate ({stats['turnout_rate']:.1f}%) but then significantly increased their turnout in subsequent elections?\n"
-        f"2. What specific, concrete steps did those cities take to increase voter participation?\n"
-        f"3. Which of those strategies would be most applicable to this jurisdiction based on the data patterns shown?\n"
-        f"\nFocus on real examples with measurable results and specific implementation strategies."
-    )
-    
-    success = False
-    
-    # Try Anthropic first if available
-    if anthropic_client:
-        try:
-            response = anthropic_client.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=1000,
-                messages=[
-                    {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
-                ]
-            )
-            
-            if response:
-                suggestions = response.content[0].text
-                st.markdown("### 🤖 AI-Generated Improvement Suggestions (Claude)")
-                st.write(suggestions)
-                success = True
-                
-        except Exception as anthropic_error:
-            st.warning(f"Anthropic API failed: {anthropic_error}")
-    
-    # Try OpenAI if Anthropic failed or wasn't available
-    if not success and openai_client:
-        try:
-            response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                max_tokens=1000,
-                messages=[
-                    {"role": "system", "content": "You are a civic engagement expert specializing in voter turnout analysis."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            
-            if response:
-                suggestions = response.choices[0].message.content
-                st.markdown("### 🤖 AI-Generated Improvement Suggestions (GPT)")
-                st.write(suggestions)
-                success = True
-                
-        except Exception as openai_error:
-            st.error(f"OpenAI API failed: {openai_error}")
-    
-    # If no AI service is available
-    if not success:
-        if not anthropic_client and not openai_client:
-            st.error("🚫 No AI services available. Please check your API keys in the environment variables.")
-            st.info("Required environment variables: ANTHROPIC_API_KEY and/or OPENAI_API_KEY")
-        else:
-            st.error("🚫 All available AI services failed. Please check your API keys and try again.")
 
 # 4. ADD TO YOUR .env FILE
 # ANTHROPIC_API_KEY=your_anthropic_api_key_here
@@ -2693,42 +2623,77 @@ if st.session_state['datasets']:
             
             create_single_dataset_charts(stats)
             
-            if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
-                prompt = (
-                    f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
-                    f"Total Precincts: {stats['total_rows']:,}\n"
-                    f"Total Registered: {stats['total_registered']:,}\n"
-                    f"Total Voted: {stats['total_voted']:,}\n"
-                    f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
-                    + (f"\nParty Breakdown:\n" + "\n".join([
-                        f"- {party}: {data['voted']:,} voted out of {data['registered']:,} registered ({data['voted']/data['registered']*100:.1f}% turnout)"
-                        for party, data in stats['party_breakdown'].items() if data['registered'] > 0
-                    ]) if stats['party_breakdown'] else "") +
-                    f"\n\nPlease provide:\n"
-                    f"1. What are 3-4 other large cities that historically struggled with voter turnout similar to this rate ({stats['turnout_rate']:.1f}%) but then significantly increased their turnout in subsequent elections?\n"
-                    f"2. What specific, concrete steps did those cities take to increase voter participation?\n"
-                    f"3. Which of those strategies would be most applicable to this jurisdiction based on the data patterns shown?\n"
-                    f"\nFocus on real examples with measurable results and specific implementation strategies."
-                )
+            # AND REPLACE YOUR AI SUGGESTION SECTION WITH THIS:
+
+if st.button(f"🤖 Get AI Suggestions for {dataset_name}", key=f"ai_{dataset_name}"):
+    prompt = (
+        f"As an expert in election data synthesis and civic engagement, analyze this election data from {dataset_name}:\n\n"
+        f"Total Precincts: {stats['total_rows']:,}\n"
+        f"Total Registered: {stats['total_registered']:,}\n"
+        f"Total Voted: {stats['total_voted']:,}\n"
+        f"Overall Turnout Rate: {stats['turnout_rate']:.2f}%\n"
+        + (f"\nParty Breakdown:\n" + "\n".join([
+            f"- {party}: {data['voted']:,} voted out of {data['registered']:,} registered ({data['voted']/data['registered']*100:.1f}% turnout)"
+            for party, data in stats['party_breakdown'].items() if data['registered'] > 0
+        ]) if stats['party_breakdown'] else "") +
+        f"\n\nPlease provide:\n"
+        f"1. What are 3-4 other large cities that historically struggled with voter turnout similar to this rate ({stats['turnout_rate']:.1f}%) but then significantly increased their turnout in subsequent elections?\n"
+        f"2. What specific, concrete steps did those cities take to increase voter participation?\n"
+        f"3. Which of those strategies would be most applicable to this jurisdiction based on the data patterns shown?\n"
+        f"\nFocus on real examples with measurable results and specific implementation strategies."
+    )
+    
+    success = False
+    
+    # Try Anthropic first if available
+    if anthropic_client:
+        try:
+            response = anthropic_client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=1000,
+                messages=[
+                    {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
+                ]
+            )
+            
+            if response:
+                suggestions = response.content[0].text
+                st.markdown("### 🤖 AI-Generated Improvement Suggestions (Claude)")
+                st.write(suggestions)
+                success = True
                 
-                try:
-                    response = client.messages.create(
-                        model="claude-3-haiku-20240307",  # or claude-3-sonnet-20240229 for better quality
-                        max_tokens=1000,
-                        messages=[
-                            {"role": "user", "content": f"You are a civic engagement expert specializing in voter turnout analysis.\n\n{prompt}"}
-                        ]
-                    )
-                    
-                    if response:
-                        suggestions = response.content[0].text
-                        st.markdown("### 🤖 AI-Generated Improvement Suggestions")
-                        st.write(suggestions)
-                    else:
-                        st.error("Unable to get AI response. Please check your API configuration.")
+        except Exception as anthropic_error:
+            st.warning(f"Anthropic API failed: {anthropic_error}")
+    
+    # Try OpenAI if Anthropic failed or wasn't available
+    if not success and openai_client:
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                max_tokens=1000,
+                messages=[
+                    {"role": "system", "content": "You are a civic engagement expert specializing in voter turnout analysis."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            if response:
+                suggestions = response.choices[0].message.content
+                st.markdown("### 🤖 AI-Generated Improvement Suggestions (GPT)")
+                st.write(suggestions)
+                success = True
                 
-                except Exception as e:
-                    st.error(f"AI request failed: {e}")
+        except Exception as openai_error:
+            st.error(f"OpenAI API failed: {openai_error}")
+    
+    # If no AI service is available
+    if not success:
+        if not anthropic_client and not openai_client:
+            st.error("🚫 No AI services available. Please check your API keys in the environment variables.")
+            st.info("Required environment variables: ANTHROPIC_API_KEY and/or OPENAI_API_KEY")
+        else:
+            st.error("🚫 All available AI services failed. Please check your API keys and try again.")
+
     
     if len(st.session_state['datasets']) > 1:
         datasets_stats = [info['stats'] for info in st.session_state['datasets'].values()]
